@@ -198,14 +198,13 @@ class SchemaGenerator(BaseSchemaGenerator):
 
         if is_custom_action(action):
             # Custom action, eg "/users/{pk}/activate/", "/users/active/"
-            if len(view.action_map) > 1:
-                action = self.default_mapping[method.lower()]
-                if action in self.coerce_method_names:
-                    action = self.coerce_method_names[action]
-                return named_path_components + [action]
-            else:
+            if len(view.action_map) <= 1:
                 return named_path_components[:-1] + [action]
 
+            action = self.default_mapping[method.lower()]
+            if action in self.coerce_method_names:
+                action = self.coerce_method_names[action]
+            return named_path_components + [action]
         if action in self.coerce_method_names:
             action = self.coerce_method_names[action]
 
@@ -371,7 +370,7 @@ class AutoSchema(ViewInspector):
         manual_fields = self.get_manual_fields(path, method)
         fields = self.update_fields(fields, manual_fields)
 
-        if fields and any([field.location in ('form', 'body') for field in fields]):
+        if fields and any(field.location in ('form', 'body') for field in fields):
             encoding = self.get_encoding(path, method)
         else:
             encoding = None
@@ -413,10 +412,11 @@ class AutoSchema(ViewInspector):
                 if model_field is not None and model_field.verbose_name:
                     title = force_str(model_field.verbose_name)
 
-                if model_field is not None and model_field.help_text:
-                    description = force_str(model_field.help_text)
-                elif model_field is not None and model_field.primary_key:
-                    description = get_pk_description(model, model_field)
+                if model_field is not None:
+                    if model_field.help_text:
+                        description = force_str(model_field.help_text)
+                    elif model_field.primary_key:
+                        description = get_pk_description(model, model_field)
 
                 if hasattr(view, 'lookup_value_regex') and view.lookup_field == variable:
                     kwargs['pattern'] = view.lookup_value_regex

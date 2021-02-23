@@ -58,10 +58,11 @@ class _MediaType:
         if self.sub_type != '*' and other.sub_type != '*' and other.sub_type != self.sub_type:
             return False
 
-        if self.main_type != '*' and other.main_type != '*' and other.main_type != self.main_type:
-            return False
-
-        return True
+        return (
+            self.main_type == '*'
+            or other.main_type == '*'
+            or other.main_type == self.main_type
+        )
 
     @property
     def precedence(self):

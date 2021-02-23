@@ -157,8 +157,8 @@ def action(methods=None, detail=None, url_path=None, url_name=None, **kwargs):
         func.mapping = MethodMapper(func, methods)
 
         func.detail = detail
-        func.url_path = url_path if url_path else func.__name__
-        func.url_name = url_name if url_name else func.__name__.replace('_', '-')
+        func.url_path = url_path or func.__name__
+        func.url_name = url_name or func.__name__.replace('_', '-')
 
         # These kwargs will end up being passed to `ViewSet.as_view()` within
         # the router, which eventually delegates to Django's CBV `View`,

@@ -235,15 +235,26 @@ def get_error_detail(exc_info):
         error_dict = exc_info.error_dict
     except AttributeError:
         return [
-            ErrorDetail((error.message % error.params) if error.params else error.message,
-                        code=error.code if error.code else code)
-            for error in exc_info.error_list]
+            ErrorDetail(
+                (error.message % error.params)
+                if error.params
+                else error.message,
+                code=error.code or code,
+            )
+            for error in exc_info.error_list
+        ]
+
     return {
         k: [
-            ErrorDetail((error.message % error.params) if error.params else error.message,
-                        code=error.code if error.code else code)
+            ErrorDetail(
+                (error.message % error.params)
+                if error.params
+                else error.message,
+                code=error.code or code,
+            )
             for error in errors
-        ] for k, errors in error_dict.items()
+        ]
+        for k, errors in error_dict.items()
     }
 
 
@@ -348,9 +359,8 @@ class Field:
         self.style = {} if style is None else style
         self.allow_null = allow_null
 
-        if self.default_empty_html is not empty:
-            if default is not empty:
-                self.default_empty_html = default
+        if self.default_empty_html is not empty and default is not empty:
+            self.default_empty_html = default
 
         if validators is not None:
             self.validators = list(validators)
@@ -395,10 +405,7 @@ class Field:
 
         # self.source_attrs is a list of attributes that need to be looked up
         # when serializing the instance, or populating the validated data.
-        if self.source == '*':
-            self.source_attrs = []
-        else:
-            self.source_attrs = self.source.split('.')
+        self.source_attrs = [] if self.source == '*' else self.source.split('.')
 
     # .validators is a lazily loaded property, that gets its default
     # value from `get_validators`.
@@ -429,24 +436,25 @@ class Field:
         Given the *incoming* primitive data, return the value for this field
         that should be validated and transformed to a native value.
         """
-        if html.is_html_input(dictionary):
-            # HTML forms will represent empty fields as '', and cannot
-            # represent None or False values directly.
-            if self.field_name not in dictionary:
-                if getattr(self.root, 'partial', False):
-                    return empty
-                return self.default_empty_html
-            ret = dictionary[self.field_name]
-            if ret == '' and self.allow_null:
+        if not html.is_html_input(dictionary):
+            return dictionary.get(self.field_name, empty)
+        # HTML forms will represent empty fields as '', and cannot
+        # represent None or False values directly.
+        if self.field_name not in dictionary:
+            if getattr(self.root, 'partial', False):
+                return empty
+            return self.default_empty_html
+        ret = dictionary[self.field_name]
+        if ret == '':
+            if self.allow_null:
                 # If the field is blank, and null is a valid value then
                 # determine if we should use null instead.
                 return '' if getattr(self, 'allow_blank', False) else None
-            elif ret == '' and not self.required:
+            elif not self.required:
                 # If the field is blank, and emptiness is valid then
                 # determine if we should use emptiness instead.
                 return '' if getattr(self, 'allow_blank', False) else empty
-            return ret
-        return dictionary.get(self.field_name, empty)
+        return ret
 
     def get_attribute(self, instance):
         """
@@ -1195,20 +1203,16 @@ class DateTimeField(Field):
             return self.enforce_timezone(value)
 
         for input_format in input_formats:
-            if input_format.lower() == ISO_8601:
-                try:
+            try:
+                if input_format.lower() == ISO_8601:
                     parsed = parse_datetime(value)
                     if parsed is not None:
                         return self.enforce_timezone(parsed)
-                except (ValueError, TypeError):
-                    pass
-            else:
-                try:
+                else:
                     parsed = self.datetime_parser(value, input_format)
                     return self.enforce_timezone(parsed)
-                except (ValueError, TypeError):
-                    pass
-
+            except (ValueError, TypeError):
+                pass
         humanized_format = humanize_datetime.datetime_formats(input_formats)
         self.fail('invalid', format=humanized_format)
 
@@ -1464,9 +1468,10 @@ class MultipleChoiceField(ChoiceField):
         super().__init__(*args, **kwargs)
 
     def get_value(self, dictionary):
-        if self.field_name not in dictionary:
-            if getattr(self.root, 'partial', False):
-                return empty
+        if self.field_name not in dictionary and getattr(
+            self.root, 'partial', False
+        ):
+            return empty
         # We override the default field access in order to support
         # lists in HTML forms.
         if html.is_html_input(dictionary):
@@ -1628,9 +1633,10 @@ class ListField(Field):
             self.validators.append(MinLengthValidator(self.min_length, message=message))
 
     def get_value(self, dictionary):
-        if self.field_name not in dictionary:
-            if getattr(self.root, 'partial', False):
-                return empty
+        if self.field_name not in dictionary and getattr(
+            self.root, 'partial', False
+        ):
+            return empty
         # We override the default field access in order to support
         # lists in HTML forms.
         if html.is_html_input(dictionary):

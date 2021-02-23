@@ -103,9 +103,11 @@ class ViewInspector:
         coerce_method_names = api_settings.SCHEMA_COERCE_METHOD_NAMES
         if header in sections:
             return sections[header].strip()
-        if header in coerce_method_names:
-            if coerce_method_names[header] in sections:
-                return sections[coerce_method_names[header]].strip()
+        if (
+            header in coerce_method_names
+            and coerce_method_names[header] in sections
+        ):
+            return sections[coerce_method_names[header]].strip()
         return sections[''].strip()
 
 

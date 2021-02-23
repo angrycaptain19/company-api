@@ -53,7 +53,6 @@ def apply_suffix_patterns(urlpatterns, suffix_pattern, suffix_required, suffix_r
             else:
                 new_pattern = re_path(regex, include((patterns, app_name), namespace), kwargs)
 
-            ret.append(new_pattern)
         else:
             # Regular URL pattern
             regex = urlpattern.pattern.regex.pattern.rstrip('$').rstrip('/') + suffix_pattern
@@ -73,8 +72,7 @@ def apply_suffix_patterns(urlpatterns, suffix_pattern, suffix_required, suffix_r
             else:
                 new_pattern = re_path(regex, view, kwargs, name)
 
-            ret.append(new_pattern)
-
+        ret.append(new_pattern)
     return ret
 
 

@@ -228,8 +228,10 @@ class OrderingFilter(BaseFilterBackend):
 
         return [
             (field.source.replace('.', '__') or field_name, field.label)
-            for field_name, field in serializer_class(context=context).fields.items()
-            if not getattr(field, 'write_only', False) and not field.source == '*'
+            for field_name, field in serializer_class(
+                context=context
+            ).fields.items()
+            if not getattr(field, 'write_only', False) and field.source != '*'
         ]
 
     def get_valid_fields(self, queryset, view, context={}):

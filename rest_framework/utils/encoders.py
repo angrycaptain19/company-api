@@ -63,5 +63,5 @@ class JSONEncoder(json.JSONEncoder):
             except Exception:
                 pass
         elif hasattr(obj, '__iter__'):
-            return tuple(item for item in obj)
+            return tuple(obj)
         return super().default(obj)

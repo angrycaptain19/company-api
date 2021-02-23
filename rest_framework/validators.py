@@ -246,11 +246,13 @@ class UniqueForDateValidator(BaseUniqueForValidator):
         value = attrs[self.field]
         date = attrs[self.date_field]
 
-        filter_kwargs = {}
-        filter_kwargs[field_name] = value
-        filter_kwargs['%s__day' % date_field_name] = date.day
-        filter_kwargs['%s__month' % date_field_name] = date.month
-        filter_kwargs['%s__year' % date_field_name] = date.year
+        filter_kwargs = {
+            field_name: value,
+            '%s__day' % date_field_name: date.day,
+            '%s__month' % date_field_name: date.month,
+            '%s__year' % date_field_name: date.year,
+        }
+
         return qs_filter(queryset, **filter_kwargs)
 
 
@@ -261,9 +263,7 @@ class UniqueForMonthValidator(BaseUniqueForValidator):
         value = attrs[self.field]
         date = attrs[self.date_field]
 
-        filter_kwargs = {}
-        filter_kwargs[field_name] = value
-        filter_kwargs['%s__month' % date_field_name] = date.month
+        filter_kwargs = {field_name: value, '%s__month' % date_field_name: date.month}
         return qs_filter(queryset, **filter_kwargs)
 
 
@@ -274,7 +274,5 @@ class UniqueForYearValidator(BaseUniqueForValidator):
         value = attrs[self.field]
         date = attrs[self.date_field]
 
-        filter_kwargs = {}
-        filter_kwargs[field_name] = value
-        filter_kwargs['%s__year' % date_field_name] = date.year
+        filter_kwargs = {field_name: value, '%s__year' % date_field_name: date.year}
         return qs_filter(queryset, **filter_kwargs)
