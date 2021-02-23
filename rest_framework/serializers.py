@@ -930,10 +930,11 @@ class ModelSerializer(Serializer):
         # They are not valid arguments to the default `.create()` method,
         # as they require that the instance has already been saved.
         info = model_meta.get_field_info(ModelClass)
-        many_to_many = {}
-        for field_name, relation_info in info.relations.items():
-            if relation_info.to_many and (field_name in validated_data):
-                many_to_many[field_name] = validated_data.pop(field_name)
+        many_to_many = {
+            field_name: validated_data.pop(field_name)
+            for field_name, relation_info in info.relations.items()
+            if relation_info.to_many and (field_name in validated_data)
+        }
 
         try:
             instance = ModelClass._default_manager.create(**validated_data)
@@ -1098,7 +1099,7 @@ class ModelSerializer(Serializer):
             )
         )
 
-        assert not (fields is None and exclude is None), (
+        assert fields is not None or exclude is not None, (
             "Creating a ModelSerializer without either the 'fields' attribute "
             "or the 'exclude' attribute has been deprecated since 3.3.0, "
             "and is now disallowed. Add an explicit fields = '__all__' to the "
@@ -1245,8 +1246,8 @@ class ModelSerializer(Serializer):
             # Populate the `encoder` argument of `JSONField` instances generated
             # for the model `JSONField`.
             field_kwargs['encoder'] = getattr(model_field, 'encoder', None)
-            if is_django_jsonfield:
-                field_kwargs['decoder'] = getattr(model_field, 'decoder', None)
+        if is_django_jsonfield:
+            field_kwargs['decoder'] = getattr(model_field, 'decoder', None)
 
         if postgres_fields and isinstance(model_field, postgres_fields.ArrayField):
             # Populate the `child` argument on `ListField` instances generated

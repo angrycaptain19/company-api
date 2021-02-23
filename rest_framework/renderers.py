@@ -198,8 +198,7 @@ class TemplateHTMLRenderer(BaseRenderer):
         except Exception:
             # Fall back to using eg '404 Not Found'
             body = '%d %s' % (response.status_code, response.status_text.title())
-            template = engines['django'].from_string(body)
-            return template
+            return engines['django'].from_string(body)
 
 
 # Note, subclass TemplateHTMLRenderer simply for the exception behavior
@@ -604,11 +603,11 @@ class BrowsableAPIRenderer(BaseRenderer):
         return get_breadcrumbs(request.path, request)
 
     def get_extra_actions(self, view, status_code):
-        if (status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)):
+        if (
+            status_code
+            in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
+        ) or not hasattr(view, 'get_extra_action_url_map'):
             return None
-        elif not hasattr(view, 'get_extra_action_url_map'):
-            return None
-
         return view.get_extra_action_url_map()
 
     def get_filter_form(self, data, view, request):
@@ -624,7 +623,7 @@ class BrowsableAPIRenderer(BaseRenderer):
                 paginator.get_results(data)
             except (TypeError, KeyError):
                 return
-        elif not isinstance(data, list):
+        else:
             return
 
         queryset = view.get_queryset()
@@ -866,7 +865,6 @@ class DocumentationRenderer(BaseRenderer):
         if isinstance(data, coreapi.Document):
             template = loader.get_template(self.template)
             context = self.get_context(data, renderer_context['request'])
-            return template.render(context, request=renderer_context['request'])
         else:
             template = loader.get_template(self.error_template)
             context = {
@@ -875,7 +873,8 @@ class DocumentationRenderer(BaseRenderer):
                 "response": renderer_context['response'],
                 "debug": settings.DEBUG,
             }
-            return template.render(context, request=renderer_context['request'])
+
+        return template.render(context, request=renderer_context['request'])
 
 
 class SchemaJSRenderer(BaseRenderer):

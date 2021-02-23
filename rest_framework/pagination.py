@@ -496,9 +496,8 @@ class LimitOffsetPagination(BasePagination):
         def page_number_to_url(page_number):
             if page_number == 1:
                 return remove_query_param(base_url, self.offset_query_param)
-            else:
-                offset = self.offset + ((page_number - current) * self.limit)
-                return replace_query_param(base_url, self.offset_query_param, offset)
+            offset = self.offset + ((page_number - current) * self.limit)
+            return replace_query_param(base_url, self.offset_query_param, offset)
 
         page_numbers = _get_displayed_page_numbers(current, final)
         page_links = _get_page_links(page_numbers, current, page_number_to_url)
@@ -548,7 +547,7 @@ class LimitOffsetPagination(BasePagination):
         ]
 
     def get_schema_operation_parameters(self, view):
-        parameters = [
+        return [
             {
                 'name': self.limit_query_param,
                 'required': False,
@@ -568,7 +567,6 @@ class LimitOffsetPagination(BasePagination):
                 },
             },
         ]
-        return parameters
 
 
 class CursorPagination(BasePagination):

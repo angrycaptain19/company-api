@@ -51,11 +51,11 @@ def field_repr(field, force_many=False):
         kwargs['many'] = True
         kwargs.pop('child', None)
 
-    arg_string = ', '.join([smart_repr(val) for val in field._args])
-    kwarg_string = ', '.join([
-        '%s=%s' % (key, smart_repr(val))
-        for key, val in sorted(kwargs.items())
-    ])
+    arg_string = ', '.join(smart_repr(val) for val in field._args)
+    kwarg_string = ', '.join(
+        '%s=%s' % (key, smart_repr(val)) for key, val in sorted(kwargs.items())
+    )
+
     if arg_string and kwarg_string:
         arg_string += ', '
 
@@ -71,11 +71,7 @@ def serializer_repr(serializer, indent, force_many=None):
     ret = field_repr(serializer, force_many) + ':'
     indent_str = '    ' * indent
 
-    if force_many:
-        fields = force_many.fields
-    else:
-        fields = serializer.fields
-
+    fields = force_many.fields if force_many else serializer.fields
     for field_name, field in fields.items():
         ret += '\n' + indent_str + field_name + ' = '
         if hasattr(field, 'fields'):

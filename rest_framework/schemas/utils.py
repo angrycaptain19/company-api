@@ -22,9 +22,7 @@ def is_list_view(path, method, view):
     if isinstance(view, RetrieveModelMixin):
         return False
     path_components = path.strip('/').split('/')
-    if path_components and '{' in path_components[-1]:
-        return False
-    return True
+    return not path_components or '{' not in path_components[-1]
 
 
 def get_pk_description(model, model_field):

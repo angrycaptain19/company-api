@@ -510,9 +510,10 @@ class ManyRelatedField(Field):
         # lists in HTML forms.
         if html.is_html_input(dictionary):
             # Don't return [] if the update is partial
-            if self.field_name not in dictionary:
-                if getattr(self.root, 'partial', False):
-                    return empty
+            if self.field_name not in dictionary and getattr(
+                self.root, 'partial', False
+            ):
+                return empty
             return dictionary.getlist(self.field_name)
 
         return dictionary.get(self.field_name, empty)

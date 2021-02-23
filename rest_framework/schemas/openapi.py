@@ -106,7 +106,7 @@ class SchemaGenerator(BaseSchemaGenerator):
             'paths': paths,
         }
 
-        if len(components_schemas) > 0:
+        if components_schemas:
             schema['components'] = {
                 'schemas': components_schemas
             }
@@ -142,9 +142,8 @@ class AutoSchema(ViewInspector):
     }
 
     def get_operation(self, path, method):
-        operation = {}
+        operation = {'operationId': self.get_operation_id(path, method)}
 
-        operation['operationId'] = self.get_operation_id(path, method)
         operation['description'] = self.get_description(path, method)
 
         parameters = []
@@ -279,10 +278,11 @@ class AutoSchema(ViewInspector):
                 except Exception:
                     model_field = None
 
-                if model_field is not None and model_field.help_text:
-                    description = force_str(model_field.help_text)
-                elif model_field is not None and model_field.primary_key:
-                    description = get_pk_description(model, model_field)
+                if model_field is not None:
+                    if model_field.help_text:
+                        description = force_str(model_field.help_text)
+                    elif model_field.primary_key:
+                        description = get_pk_description(model, model_field)
 
             parameter = {
                 "name": variable,

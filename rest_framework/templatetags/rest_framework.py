@@ -186,15 +186,14 @@ def add_class(value, css_class):
     """
     html = str(value)
     match = class_re.search(html)
-    if match:
-        m = re.search(r'^%s$|^%s\s|\s%s\s|\s%s$' % (css_class, css_class,
-                                                    css_class, css_class),
-                      match.group(1))
-        if not m:
-            return mark_safe(class_re.sub(match.group(1) + " " + css_class,
-                                          html))
-    else:
+    if not match:
         return mark_safe(html.replace('>', ' class="%s">' % css_class, 1))
+    m = re.search(r'^%s$|^%s\s|\s%s\s|\s%s$' % (css_class, css_class,
+                                                css_class, css_class),
+                  match.group(1))
+    if not m:
+        return mark_safe(class_re.sub(match.group(1) + " " + css_class,
+                                      html))
     return value
 
 
@@ -206,7 +205,7 @@ def format_value(value):
     if value is None or isinstance(value, bool):
         return mark_safe('<code>%s</code>' % {True: 'true', False: 'false', None: 'null'}[value])
     elif isinstance(value, list):
-        if any([isinstance(item, (list, dict)) for item in value]):
+        if any(isinstance(item, (list, dict)) for item in value):
             template = loader.get_template('rest_framework/admin/list_value.html')
         else:
             template = loader.get_template('rest_framework/admin/simple_list_value.html')
@@ -263,7 +262,6 @@ def schema_links(section, sec_key=None):
     """
     Recursively find every link in a schema, even nested.
     """
-    NESTED_FORMAT = '%s > %s'  # this format is used in docs/js/api.js:normalizeKeys
     links = section.links
     if section.data:
         data = section.data.items()
@@ -273,6 +271,7 @@ def schema_links(section, sec_key=None):
 
     if sec_key is not None:
         new_links = OrderedDict()
+        NESTED_FORMAT = '%s > %s'  # this format is used in docs/js/api.js:normalizeKeys
         for link_key, link in links.items():
             new_key = NESTED_FORMAT % (sec_key, link_key)
             new_links.update({new_key: link})
@@ -285,7 +284,9 @@ def schema_links(section, sec_key=None):
 def add_nested_class(value):
     if isinstance(value, dict):
         return 'class=nested'
-    if isinstance(value, list) and any([isinstance(item, (list, dict)) for item in value]):
+    if isinstance(value, list) and any(
+        isinstance(item, (list, dict)) for item in value
+    ):
         return 'class=nested'
     return ''
 

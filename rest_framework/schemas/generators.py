@@ -61,10 +61,7 @@ class EndpointEnumerator:
                 urlconf = settings.ROOT_URLCONF
 
             # Load the given URLconf module
-            if isinstance(urlconf, str):
-                urls = import_module(urlconf)
-            else:
-                urls = urlconf
+            urls = import_module(urlconf) if isinstance(urlconf, str) else urlconf
             patterns = urls.urlpatterns
 
         self.patterns = patterns
@@ -216,10 +213,7 @@ class BaseSchemaGenerator:
         if not self.coerce_path_pk or '{pk}' not in path:
             return path
         model = getattr(getattr(view, 'queryset', None), 'model', None)
-        if model:
-            field_name = get_pk_name(model)
-        else:
-            field_name = 'id'
+        field_name = get_pk_name(model) if model else 'id'
         return path.replace('{pk}', '{%s}' % field_name)
 
     def get_schema(self, request=None, public=False):

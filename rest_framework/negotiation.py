@@ -57,22 +57,21 @@ class DefaultContentNegotiation(BaseContentNegotiation):
                         # Return the most specific media type as accepted.
                         media_type_wrapper = _MediaType(media_type)
                         if (
-                            _MediaType(renderer.media_type).precedence >
-                            media_type_wrapper.precedence
+                            _MediaType(renderer.media_type).precedence
+                            <= media_type_wrapper.precedence
                         ):
-                            # Eg client requests '*/*'
-                            # Accepted media type is 'application/json'
-                            full_media_type = ';'.join(
-                                (renderer.media_type,) +
-                                tuple('{}={}'.format(
-                                    key, value.decode(HTTP_HEADER_ENCODING))
-                                    for key, value in media_type_wrapper.params.items()))
-                            return renderer, full_media_type
-                        else:
                             # Eg client requests 'application/json; indent=8'
                             # Accepted media type is 'application/json; indent=8'
                             return renderer, media_type
 
+                        # Eg client requests '*/*'
+                        # Accepted media type is 'application/json'
+                        full_media_type = ';'.join(
+                            (renderer.media_type,) +
+                            tuple('{}={}'.format(
+                                key, value.decode(HTTP_HEADER_ENCODING))
+                                for key, value in media_type_wrapper.params.items()))
+                        return renderer, full_media_type
         raise exceptions.NotAcceptable(available_renderers=renderers)
 
     def filter_renderers(self, renderers, format):
